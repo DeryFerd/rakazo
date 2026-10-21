@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  escapeSearchWildcards,
   extractLinksFromText,
   matchesSearchQuery,
   searchHitThreadTarget,
@@ -52,6 +53,17 @@ describe("search helpers", () => {
   it("matches case-insensitive substrings", () => {
     expect(matchesSearchQuery("Venue", "Research venues")).toBe(true);
     expect(matchesSearchQuery("missing", "Research venues")).toBe(false);
+  });
+
+  it("escapes the characters a SQL LIKE pattern treats as wildcards", () => {
+    expect(escapeSearchWildcards("50% off")).toBe("50\\% off");
+    expect(escapeSearchWildcards("under_score")).toBe("under\\_score");
+    expect(escapeSearchWildcards("back\\slash")).toBe("back\\\\slash");
+  });
+
+  it("leaves a query without wildcards untouched", () => {
+    expect(escapeSearchWildcards("venue")).toBe("venue");
+    expect(escapeSearchWildcards("")).toBe("");
   });
 
   it("builds a short snippet around the query", () => {

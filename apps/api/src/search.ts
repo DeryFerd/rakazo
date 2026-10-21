@@ -1,6 +1,7 @@
 import type { Actor, MessageBlock, SearchHit } from "@rakazo/contracts";
 import {
   displayName,
+  escapeJsonSearchWildcards,
   escapeSearchWildcards,
   extractLinksFromText,
   matchesSearchQuery,
@@ -22,7 +23,7 @@ const UNINDEXED_SCAN_LIMIT = 200;
  * on rows that are still plaintext.
  */
 async function messageMatch(prisma: PrismaClient, spaceId: string, query: string) {
-  const plaintext = Prisma.sql`m.blocks::text ILIKE ${`%${escapeSearchWildcards(query)}%`}`;
+  const plaintext = Prisma.sql`m.blocks::text ILIKE ${`%${escapeJsonSearchWildcards(query)}%`}`;
   const encryption = contentEncryptionOf(prisma);
   if (!encryption) return { sql: plaintext, limit: SEARCH_LIMIT, pages: 1 };
   const tokenSets = (await encryption.messageSearchTokens(spaceId, query, "prefix")).filter(

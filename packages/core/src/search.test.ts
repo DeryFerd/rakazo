@@ -2,6 +2,7 @@ import type { SearchHit } from "@rakazo/contracts";
 import { describe, expect, it } from "vitest";
 import {
   dedupeSearchHits,
+  escapeJsonSearchWildcards,
   escapeSearchWildcards,
   extractLinksFromText,
   matchesSearchQuery,
@@ -67,6 +68,18 @@ describe("search helpers", () => {
   it("leaves a query without wildcards untouched", () => {
     expect(escapeSearchWildcards("venue")).toBe("venue");
     expect(escapeSearchWildcards("")).toBe("");
+  });
+
+  it.each([
+    [String.raw`back\slash`, String.raw`back\\\\slash`],
+    ['say "hi"', String.raw`say \\"hi\\"`],
+    ["50%_off", String.raw`50\%\_off`],
+    ["line\nbreak", String.raw`line\\nbreak`],
+    ["venue", "venue"],
+    ["café/東京", "café/東京"],
+    ["\b\f\r\t\u0001", String.raw`\\b\\f\\r\\t\\u0001`],
+  ])("escapes %j for a JSONB text LIKE pattern", (query, expected) => {
+    expect(escapeJsonSearchWildcards(query)).toBe(expected);
   });
 
   it("builds a short snippet around the query", () => {
